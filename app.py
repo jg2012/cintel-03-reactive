@@ -83,28 +83,27 @@ with ui.sidebar(open="open"):
 
 # Creates a DataTable showing all data
 
-with ui.layout_columns(col_widths=(4, 8)):        
+with ui.layout_columns():        
     with ui.card():
-        "DataTable"
-
-    ui.h2("Penguins Table")
-
-    @render.data_frame
-    def render_penguins_table():
-        return penguins_df
-
-@render.data_frame
-def penguins_data():
-    return render.DataGrid(penguins_df, row_selection_mode="multiple") 
+        ui.card_header("Palmer Penguins Data Table")
+        penguins_df = palmerpenguins.load_penguins()
+        @render.data_frame
+        def render_penguins_table():
+            return filtered_data()
+    with ui.card():
+        ui.card_header("Palmer Penguins Data Grid")
+        @render.data_frame
+        def penguins_data():
+            return render.DataGrid(penguins_df, row_selection_mode="multiple") 
 
 # Creates a Plotly Histogram showing all species
-
-with ui.card(full_screen=True):
-    ui.card_header("Plotly Histogram")
+with ui.layout_columns():        
+    with ui.card(full_screen=True):
+        ui.card_header("Plotly Histogram")
     
-    @render_plotly
-    def plotly_histogram():
-        return px.histogram(
+        @render_plotly
+        def plotly_histogram():
+            return px.histogram(
             penguins_df, x=input.selected_attribute(), nbins=input.plotly_bin_count()
         )
 
@@ -137,5 +136,18 @@ with ui.card(full_screen=True):
                 "bill_length_mm": "Bill Length (mm)",
                 "body_mass_g": "Body Mass (g)",
             },
-            size_max=8, 
+            
                          )
+
+
+# --------------------------------------------------------
+# Reactive calculations and effects
+# --------------------------------------------------------
+
+# Add a reactive calculation to filter the data
+# By decorating the function with @reactive, we can use the function to filter the data
+# The function will be called whenever an input functions used to generate that output changes.
+# Any output that depends on the reactive function (e.g., filtered_data()) will be updated when the data changes.
+@reactive.calc
+def filtered_data():
+    return penguins_df
