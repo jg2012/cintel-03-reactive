@@ -9,8 +9,6 @@ from shiny import reactive, render, req
 # Use the built-in function to load the Palmer Penguins dataset
 penguins_df = palmerpenguins.load_penguins()
 
-ui.page_opts(title="Jose Guzman's Penguin Data", fillable=True)
-
 
 
 # Add a Shiny UI sidebar for user interaction
@@ -104,7 +102,7 @@ with ui.layout_columns():
         @render_plotly
         def plotly_histogram():
             return px.histogram(
-            penguins_df, x=input.selected_attribute(), nbins=input.plotly_bin_count()
+            filtered_data(), x=input.selected_attribute(), nbins=input.plotly_bin_count()
         )
 
 # Creates a Seaborn Histogram showing all species
@@ -114,7 +112,7 @@ with ui.card(full_screen=True):
 
     @render.plot(alt="Seaborn Histogram")
     def seaborn_histogram():
-        histplot = sns.histplot(data=penguins_df, x="body_mass_g", bins=input.seaborn_bin_count())
+        histplot = sns.histplot(filtered_data(), x="body_mass_g", bins=input.seaborn_bin_count())
         histplot.set_title("Palmer Penguins")
         histplot.set_xlabel("Mass")
         histplot.set_ylabel("Count")
@@ -127,7 +125,7 @@ with ui.card(full_screen=True):
 
     @render_plotly
     def plotly_scatterplot():
-        return px.scatter(penguins_df,
+        return px.scatter(filtered_data(),
             x="bill_length_mm",
             y="body_mass_g",
             color="species",
