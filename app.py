@@ -66,7 +66,7 @@ with ui.sidebar(open="open"):
         ["Adelie", "Gentoo", "Chinstrap"], selected=["Adelie"], inline=False
     )
 
-
+    
 
 
 # Use ui.a() to add a hyperlink to the sidebar
@@ -75,13 +75,13 @@ with ui.sidebar(open="open"):
 #   a keyword argument href= the URL for the hyperlink (in quotes), e.g. your GitHub repo URL
 #   a keyword argument target= "_blank" to open the link in a new tab
     ui.a("GitHub", href="https://github.com/jg2012/cintel-02-data", target="_blank")
- 
+
+    
 
 # When passing in multiple arguments to a function, separate them with commas.
-
+ui.page_opts(title="Jose Guzman's Penguin Data", fillable=True)
 # Creates a DataTable showing all data
-
-with ui.layout_columns():        
+with ui.nav_panel("Table"):  
     with ui.card():
         ui.card_header("Palmer Penguins Data Table")
         penguins_df = palmerpenguins.load_penguins()
@@ -95,42 +95,43 @@ with ui.layout_columns():
             return render.DataGrid(penguins_df, row_selection_mode="multiple") 
 
 # Creates a Plotly Histogram showing all species
-with ui.layout_columns():        
-    with ui.card(full_screen=True):
-        ui.card_header("Plotly Histogram")
+with ui.nav_panel("Plots"):
+ with ui.layout_columns(col_widths=[6,6]):        
+    with ui.card():
+            ui.card_header("Plotly Histogram")
     
-        @render_plotly
-        def plotly_histogram():
-            return px.histogram(
-            filtered_data(), x=input.selected_attribute(), nbins=input.plotly_bin_count()
+            @render_plotly
+            def plotly_histogram():
+                return px.histogram(
+                filtered_data(), x=input.selected_attribute(), nbins=input.plotly_bin_count()
         )
 
 # Creates a Seaborn Histogram showing all species
+     
+    with ui.card(full_screen=True):
+        ui.card_header("Seaborn Histogram")
 
-with ui.card(full_screen=True):
-    ui.card_header("Seaborn Histogram")
-
-    @render.plot(alt="Seaborn Histogram")
-    def seaborn_histogram():
-        histplot = sns.histplot(filtered_data(), x="body_mass_g", bins=input.seaborn_bin_count())
-        histplot.set_title("Palmer Penguins")
-        histplot.set_xlabel("Mass")
-        histplot.set_ylabel("Count")
-        return histplot
+        @render.plot(alt="Seaborn Histogram")
+        def seaborn_histogram():
+            histplot = sns.histplot(filtered_data(), x="body_mass_g", bins=input.seaborn_bin_count())
+            histplot.set_title("Palmer Penguins")
+            histplot.set_xlabel("Mass")
+            histplot.set_ylabel("Count")
+            return histplot
 
 # Creates a Plotly Scatterplot showing all species
 
-with ui.card(full_screen=True):
-    ui.card_header("Plotly Scatterplot: Species")
+    with ui.card(full_screen=True):
+        ui.card_header("Plotly Scatterplot: Species")
 
-    @render_plotly
-    def plotly_scatterplot():
-        return px.scatter(filtered_data(),
-            x="bill_length_mm",
-            y="body_mass_g",
-            color="species",
-            title="Penguins Plot",
-            labels={
+        @render_plotly
+        def plotly_scatterplot():
+            return px.scatter(filtered_data(),
+                x="bill_length_mm",
+                y="body_mass_g",
+                color="species",
+                title="Penguins Plot",
+                labels={
                 "bill_length_mm": "Bill Length (mm)",
                 "body_mass_g": "Body Mass (g)",
             },
@@ -148,4 +149,5 @@ with ui.card(full_screen=True):
 # Any output that depends on the reactive function (e.g., filtered_data()) will be updated when the data changes.
 @reactive.calc
 def filtered_data():
-    return penguins_df
+    
+    return penguins_df[penguins_df["species"].isin(input.selected_species_list())]
