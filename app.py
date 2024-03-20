@@ -9,7 +9,7 @@ from shiny import reactive, render, req
 # Use the built-in function to load the Palmer Penguins dataset
 penguins_df = palmerpenguins.load_penguins()
 
-
+ui.page_opts(fillable=True)
 
 # Add a Shiny UI sidebar for user interaction
 # Use the ui.sidebar() function to create a sidebar
@@ -21,7 +21,14 @@ penguins_df = palmerpenguins.load_penguins()
 #   pass in a string argument (in quotes) to set the header text to "Sidebar"
 
 with ui.sidebar(open="open"):
-    ui.h2("Sidebar")
+    ui.h2("Menu")
+
+    # Use ui.a() to add a hyperlink to the sidebar
+#   pass in two arguments:
+#   the text for the hyperlink (in quotes), e.g. "GitHub"
+#   a keyword argument href= the URL for the hyperlink (in quotes), e.g. your GitHub repo URL
+#   a keyword argument target= "_blank" to open the link in a new tab
+    ui.a("GitHub", href="https://github.com/jg2012/cintel-02-data", target="_blank")
 
 # Use ui.input_selectize() to create a dropdown input to choose a column
 #   pass in three arguments:
@@ -66,37 +73,41 @@ with ui.sidebar(open="open"):
         ["Adelie", "Gentoo", "Chinstrap"], selected=["Adelie"], inline=False
     )
 
-    
+
+    ui.input_checkbox_group(  
+        "penguin_islands",
+        "Islands",
+        ["Torgersen", "Biscoe", "Dream"],
+        selected=["Dream"],
+        inline=False,
+    )
 
 
-# Use ui.a() to add a hyperlink to the sidebar
-#   pass in two arguments:
-#   the text for the hyperlink (in quotes), e.g. "GitHub"
-#   a keyword argument href= the URL for the hyperlink (in quotes), e.g. your GitHub repo URL
-#   a keyword argument target= "_blank" to open the link in a new tab
-    ui.a("GitHub", href="https://github.com/jg2012/cintel-02-data", target="_blank")
+
 
     
 
 # When passing in multiple arguments to a function, separate them with commas.
 ui.page_opts(title="Jose Guzman's Penguin Data", fillable=True)
 # Creates a DataTable showing all data
-with ui.nav_panel("Table"):  
-    with ui.card():
-        ui.card_header("Palmer Penguins Data Table")
-        penguins_df = palmerpenguins.load_penguins()
-        @render.data_frame
-        def render_penguins_table():
-            return filtered_data()
-    with ui.card():
-        ui.card_header("Palmer Penguins Data Grid")
-        @render.data_frame
-        def penguins_data():
-            return render.DataGrid(penguins_df, row_selection_mode="multiple") 
+with ui.nav_panel("Tables"):  
+ with ui.layout_column_wrap():
+        with ui.card():
+            ui.card_header("Palmer Penguins Data Table")
+            penguins_df = palmerpenguins.load_penguins()
+            @render.data_frame
+            def render_penguins_table():
+                return filtered_data()
+        with ui.card():
+            ui.card_header("Palmer Penguins Data Grid")
+            @render.data_frame
+            def penguins_data():
+                return render.DataGrid(penguins_df, row_selection_mode="multiple") 
 
 # Creates a Plotly Histogram showing all species
+            
 with ui.nav_panel("Plots"):
- with ui.layout_columns(col_widths=[6,6]):        
+ with ui.layout_column_wrap():        
     with ui.card():
             ui.card_header("Plotly Histogram")
     
@@ -150,4 +161,5 @@ with ui.nav_panel("Plots"):
 @reactive.calc
 def filtered_data():
     
-    return penguins_df[penguins_df["species"].isin(input.selected_species_list())]
+    return penguins_df[penguins_df["species"].isin(input.selected_species_list()) &
+        (penguins_df["island"].isin(input.penguin_islands()))]
